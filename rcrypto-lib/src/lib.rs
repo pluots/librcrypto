@@ -1,10 +1,16 @@
 #![no_std]
+use core::ffi::c_short;
 use core::slice;
 
 use aead::generic_array::typenum::marker_traits::Unsigned;
 use aead::AeadInPlace;
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use chacha20poly1305::{ChaCha20Poly1305, XChaCha20Poly1305};
+
+const fn foo() -> usize {
+    100
+}
+pub const X: usize = foo();
 
 macro_rules! aead_interface {
     ($alg:ty, $id:ident, $name:literal) => {
@@ -50,6 +56,7 @@ macro_rules! aead_interface {
         /// Generate a nonce suitible for use with the
         #[doc = $name]
         /// algorithm.
+        #[no_mangle]
         pub extern "C" fn $noncegen_fn(nonce: &mut [u8; $noncebytes]) {
             *nonce = <$alg as aead::AeadCore>::generate_nonce(aead::OsRng).into();
         }
@@ -57,40 +64,37 @@ macro_rules! aead_interface {
         /// Generate a key suitible for use with the
         #[doc = $name]
         /// algorithm.
+        #[no_mangle]
         pub extern "C" fn $keygen_fn(key: &mut [u8; $keybytes]) {
             *key = <$alg as aead::KeyInit>::generate_key(aead::OsRng).into();
         }
 
-        /// Encrypt a message using the
-        #[doc = $name]
-        /// algorithm.
+        #[doc = concat!(" Encrypt a message using the ", $name, " algorithm.")]
         ///
         /// Returns 0 if successful, -1 otherwise. Parameters:
         ///
         /// - `msg`: an input and output buffer that will be encrypted
         /// - `mlen`: length of the message to be encrypted
         /// - `mac`: an output buffer where the authentecation tag will be written. Must be
-        #[doc = stringify!($macbytes)]
-        ///    bytes in length.
+        #[doc = concat!("   `", stringify!($macbytes), "` bytes in length.")]
         /// - `nonce`: a number used once, AKA initialization vector. This does not have to be
         ///   confidential and can be stored with the message; however, it may not be reused
         ///   for further encryption. Must be
-        #[doc = stringify!($noncebytes)]
-        ///   bytes in length.
+        #[doc = concat!("   `", stringify!($noncebytes), "` bytes in length.")]
         /// - `key`: the key used to encrypt the message. Must be
-        #[doc = stringify!($keybytes)]
-        ///   bytes in length.
+        #[doc = concat!("   `", stringify!($keybytes), "` bytes in length.")]
         ///
         /// # SAFETY
         ///
         /// `msg` must point to a valid buffer that is at least `mlen` in length.
+        #[no_mangle]
         pub unsafe extern "C" fn $encrypt_fn(
             msg: *mut u8,
             mlen: usize,
             mac: &mut [u8; $macbytes],
             nonce: &[u8; $noncebytes],
             key: &[u8; $keybytes],
-        ) -> i8 {
+        ) -> c_short {
             // SAFETY: caller guarantees valid data
             let msg = unsafe { slice::from_raw_parts_mut(msg, mlen) };
 
@@ -105,36 +109,32 @@ macro_rules! aead_interface {
             0
         }
 
-        /// Encrypt a message using the
-        #[doc = $name]
-        /// algorithm.
+        #[doc = concat!(" Decrypt a message using the ", $name, " algorithm.")]
         ///
         /// Returns 0 if successful, -1 otherwise. Parameters:
         ///
         /// - `msg`: an input and output buffer that will be decrypted
         /// - `mlen`: length of the message to be decrypted
         /// - `mac`: an output buffer where the authentecation tag will be written. Must be
-        #[doc = stringify!($macbytes)]
-        ///    bytes in length.
+        #[doc = concat!("   `", stringify!($macbytes), "` bytes in length.")]
         /// - `nonce`: a number used once, AKA initialization vector. This does not have to be
         ///   confidential and can be stored with the message; however, it may not be reused
         ///   for further encryption. Must be
-        #[doc = stringify!($noncebytes)]
-        ///   bytes in length.
+        #[doc = concat!("   `", stringify!($noncebytes), "` bytes in length.")]
         /// - `key`: the key used to encrypt the message. Must be
-        #[doc = stringify!($keybytes)]
-        ///   bytes in length.
+        #[doc = concat!("   `", stringify!($keybytes), "` bytes in length.")]
         ///
         /// # SAFETY
         ///
         /// `msg` must point to a valid buffer that is at least `mlen` in length.
+        #[no_mangle]
         pub unsafe extern "C" fn $decrypt_fn(
             msg: *mut u8,
             mlen: usize,
             mac: &[u8; $macbytes],
             nonce: &[u8; $noncebytes],
             key: &[u8; $keybytes],
-        ) -> i8 {
+        ) -> c_short {
             // SAFETY: caller guarantees valid data
             let msg = unsafe { slice::from_raw_parts_mut(msg, mlen) };
 

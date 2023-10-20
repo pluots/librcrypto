@@ -3,5 +3,6 @@ resolver = "2"
 members = [
     "rcrypto",
     "rcrypto-lib",
-    "rcrypto-cli"
+    "rcrypto-cli",
+    "generate-bindings",
 ]
