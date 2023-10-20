@@ -33,14 +33,14 @@ extern "C" {
  *AES128-GCM
  * algorithm.
  */
-void rc_aead_aes128gcm_noncegen(uint8_t (*nonce)[RC_AEAD_AES128GCM_NONCEBYTES]);
+void rc_aead_aes128gcm_noncegen(uint8_t nonce[RC_AEAD_AES128GCM_NONCEBYTES]);
 
 /**
  * Generate a key suitible for use with the
  *AES128-GCM
  * algorithm.
  */
-void rc_aead_aes128gcm_keygen(uint8_t (*key)[RC_AEAD_AES128GCM_KEYBYTES]);
+void rc_aead_aes128gcm_keygen(uint8_t key[RC_AEAD_AES128GCM_KEYBYTES]);
 
 /**
  * Encrypt a message using the AES128-GCM algorithm.
@@ -62,11 +62,19 @@ void rc_aead_aes128gcm_keygen(uint8_t (*key)[RC_AEAD_AES128GCM_KEYBYTES]);
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_aes128gcm_encrypt(uint8_t *msg,
-                                uintptr_t mlen,
-                                uint8_t (*mac)[RC_AEAD_AES128GCM_MACBYTES],
-                                const uint8_t (*nonce)[RC_AEAD_AES128GCM_NONCEBYTES],
-                                const uint8_t (*key)[RC_AEAD_AES128GCM_KEYBYTES]);
+int8_t rc_aead_aes128gcm_encrypt(uint8_t *msg,
+                                 uintptr_t mlen,
+                                 uint8_t mac[RC_AEAD_AES128GCM_MACBYTES],
+                                 const uint8_t nonce[RC_AEAD_AES128GCM_NONCEBYTES],
+                                 const uint8_t key[RC_AEAD_AES128GCM_KEYBYTES]);
+
+int8_t rc_aead_aes128gcm_encrypt_ad(uint8_t *msg,
+                                    uintptr_t mlen,
+                                    uint8_t mac[RC_AEAD_AES128GCM_MACBYTES],
+                                    const uint8_t nonce[RC_AEAD_AES128GCM_NONCEBYTES],
+                                    const uint8_t key[RC_AEAD_AES128GCM_KEYBYTES],
+                                    const uint8_t *ad,
+                                    uintptr_t adlen);
 
 /**
  * Decrypt a message using the AES128-GCM algorithm.
@@ -88,25 +96,33 @@ short rc_aead_aes128gcm_encrypt(uint8_t *msg,
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_aes128gcm_decrypt(uint8_t *msg,
-                                uintptr_t mlen,
-                                const uint8_t (*mac)[RC_AEAD_AES128GCM_MACBYTES],
-                                const uint8_t (*nonce)[RC_AEAD_AES128GCM_NONCEBYTES],
-                                const uint8_t (*key)[RC_AEAD_AES128GCM_KEYBYTES]);
+int8_t rc_aead_aes128gcm_decrypt(uint8_t *msg,
+                                 uintptr_t mlen,
+                                 const uint8_t mac[RC_AEAD_AES128GCM_MACBYTES],
+                                 const uint8_t nonce[RC_AEAD_AES128GCM_NONCEBYTES],
+                                 const uint8_t key[RC_AEAD_AES128GCM_KEYBYTES]);
+
+int8_t rc_aead_aes128gcm_decrypt_ad(uint8_t *msg,
+                                    uintptr_t mlen,
+                                    const uint8_t mac[RC_AEAD_AES128GCM_MACBYTES],
+                                    const uint8_t nonce[RC_AEAD_AES128GCM_NONCEBYTES],
+                                    const uint8_t key[RC_AEAD_AES128GCM_KEYBYTES],
+                                    const uint8_t *ad,
+                                    uintptr_t adlen);
 
 /**
  * Generate a nonce suitible for use with the
  *AES256-GCM
  * algorithm.
  */
-void rc_aead_aes256gcm_noncegen(uint8_t (*nonce)[RC_AEAD_AES256GCM_NONCEBYTES]);
+void rc_aead_aes256gcm_noncegen(uint8_t nonce[RC_AEAD_AES256GCM_NONCEBYTES]);
 
 /**
  * Generate a key suitible for use with the
  *AES256-GCM
  * algorithm.
  */
-void rc_aead_aes256gcm_keygen(uint8_t (*key)[RC_AEAD_AES256GCM_KEYBYTES]);
+void rc_aead_aes256gcm_keygen(uint8_t key[RC_AEAD_AES256GCM_KEYBYTES]);
 
 /**
  * Encrypt a message using the AES256-GCM algorithm.
@@ -128,11 +144,19 @@ void rc_aead_aes256gcm_keygen(uint8_t (*key)[RC_AEAD_AES256GCM_KEYBYTES]);
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_aes256gcm_encrypt(uint8_t *msg,
-                                uintptr_t mlen,
-                                uint8_t (*mac)[RC_AEAD_AES256GCM_MACBYTES],
-                                const uint8_t (*nonce)[RC_AEAD_AES256GCM_NONCEBYTES],
-                                const uint8_t (*key)[RC_AEAD_AES256GCM_KEYBYTES]);
+int8_t rc_aead_aes256gcm_encrypt(uint8_t *msg,
+                                 uintptr_t mlen,
+                                 uint8_t mac[RC_AEAD_AES256GCM_MACBYTES],
+                                 const uint8_t nonce[RC_AEAD_AES256GCM_NONCEBYTES],
+                                 const uint8_t key[RC_AEAD_AES256GCM_KEYBYTES]);
+
+int8_t rc_aead_aes256gcm_encrypt_ad(uint8_t *msg,
+                                    uintptr_t mlen,
+                                    uint8_t mac[RC_AEAD_AES256GCM_MACBYTES],
+                                    const uint8_t nonce[RC_AEAD_AES256GCM_NONCEBYTES],
+                                    const uint8_t key[RC_AEAD_AES256GCM_KEYBYTES],
+                                    const uint8_t *ad,
+                                    uintptr_t adlen);
 
 /**
  * Decrypt a message using the AES256-GCM algorithm.
@@ -154,25 +178,33 @@ short rc_aead_aes256gcm_encrypt(uint8_t *msg,
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_aes256gcm_decrypt(uint8_t *msg,
-                                uintptr_t mlen,
-                                const uint8_t (*mac)[RC_AEAD_AES256GCM_MACBYTES],
-                                const uint8_t (*nonce)[RC_AEAD_AES256GCM_NONCEBYTES],
-                                const uint8_t (*key)[RC_AEAD_AES256GCM_KEYBYTES]);
+int8_t rc_aead_aes256gcm_decrypt(uint8_t *msg,
+                                 uintptr_t mlen,
+                                 const uint8_t mac[RC_AEAD_AES256GCM_MACBYTES],
+                                 const uint8_t nonce[RC_AEAD_AES256GCM_NONCEBYTES],
+                                 const uint8_t key[RC_AEAD_AES256GCM_KEYBYTES]);
+
+int8_t rc_aead_aes256gcm_decrypt_ad(uint8_t *msg,
+                                    uintptr_t mlen,
+                                    const uint8_t mac[RC_AEAD_AES256GCM_MACBYTES],
+                                    const uint8_t nonce[RC_AEAD_AES256GCM_NONCEBYTES],
+                                    const uint8_t key[RC_AEAD_AES256GCM_KEYBYTES],
+                                    const uint8_t *ad,
+                                    uintptr_t adlen);
 
 /**
  * Generate a nonce suitible for use with the
  *ChaCha20-Poly1305
  * algorithm.
  */
-void rc_aead_chacha20poly1305_noncegen(uint8_t (*nonce)[RC_AEAD_CHACHA20POLY1305_NONCEBYTES]);
+void rc_aead_chacha20poly1305_noncegen(uint8_t nonce[RC_AEAD_CHACHA20POLY1305_NONCEBYTES]);
 
 /**
  * Generate a key suitible for use with the
  *ChaCha20-Poly1305
  * algorithm.
  */
-void rc_aead_chacha20poly1305_keygen(uint8_t (*key)[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
+void rc_aead_chacha20poly1305_keygen(uint8_t key[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
 
 /**
  * Encrypt a message using the ChaCha20-Poly1305 algorithm.
@@ -194,11 +226,19 @@ void rc_aead_chacha20poly1305_keygen(uint8_t (*key)[RC_AEAD_CHACHA20POLY1305_KEY
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_chacha20poly1305_encrypt(uint8_t *msg,
-                                       uintptr_t mlen,
-                                       uint8_t (*mac)[RC_AEAD_CHACHA20POLY1305_MACBYTES],
-                                       const uint8_t (*nonce)[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
-                                       const uint8_t (*key)[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
+int8_t rc_aead_chacha20poly1305_encrypt(uint8_t *msg,
+                                        uintptr_t mlen,
+                                        uint8_t mac[RC_AEAD_CHACHA20POLY1305_MACBYTES],
+                                        const uint8_t nonce[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
+                                        const uint8_t key[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
+
+int8_t rc_aead_chacha20poly1305_encrypt_ad(uint8_t *msg,
+                                           uintptr_t mlen,
+                                           uint8_t mac[RC_AEAD_CHACHA20POLY1305_MACBYTES],
+                                           const uint8_t nonce[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
+                                           const uint8_t key[RC_AEAD_CHACHA20POLY1305_KEYBYTES],
+                                           const uint8_t *ad,
+                                           uintptr_t adlen);
 
 /**
  * Decrypt a message using the ChaCha20-Poly1305 algorithm.
@@ -220,25 +260,33 @@ short rc_aead_chacha20poly1305_encrypt(uint8_t *msg,
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_chacha20poly1305_decrypt(uint8_t *msg,
-                                       uintptr_t mlen,
-                                       const uint8_t (*mac)[RC_AEAD_CHACHA20POLY1305_MACBYTES],
-                                       const uint8_t (*nonce)[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
-                                       const uint8_t (*key)[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
+int8_t rc_aead_chacha20poly1305_decrypt(uint8_t *msg,
+                                        uintptr_t mlen,
+                                        const uint8_t mac[RC_AEAD_CHACHA20POLY1305_MACBYTES],
+                                        const uint8_t nonce[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
+                                        const uint8_t key[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
+
+int8_t rc_aead_chacha20poly1305_decrypt_ad(uint8_t *msg,
+                                           uintptr_t mlen,
+                                           const uint8_t mac[RC_AEAD_CHACHA20POLY1305_MACBYTES],
+                                           const uint8_t nonce[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
+                                           const uint8_t key[RC_AEAD_CHACHA20POLY1305_KEYBYTES],
+                                           const uint8_t *ad,
+                                           uintptr_t adlen);
 
 /**
  * Generate a nonce suitible for use with the
  *XChaCha20-Poly1305
  * algorithm.
  */
-void rc_aead_xchacha20poly1305_noncegen(uint8_t (*nonce)[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES]);
+void rc_aead_xchacha20poly1305_noncegen(uint8_t nonce[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES]);
 
 /**
  * Generate a key suitible for use with the
  *XChaCha20-Poly1305
  * algorithm.
  */
-void rc_aead_xchacha20poly1305_keygen(uint8_t (*key)[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
+void rc_aead_xchacha20poly1305_keygen(uint8_t key[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
 
 /**
  * Encrypt a message using the XChaCha20-Poly1305 algorithm.
@@ -260,11 +308,19 @@ void rc_aead_xchacha20poly1305_keygen(uint8_t (*key)[RC_AEAD_XCHACHA20POLY1305_K
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_xchacha20poly1305_encrypt(uint8_t *msg,
-                                        uintptr_t mlen,
-                                        uint8_t (*mac)[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
-                                        const uint8_t (*nonce)[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
-                                        const uint8_t (*key)[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
+int8_t rc_aead_xchacha20poly1305_encrypt(uint8_t *msg,
+                                         uintptr_t mlen,
+                                         uint8_t mac[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
+                                         const uint8_t nonce[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
+                                         const uint8_t key[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
+
+int8_t rc_aead_xchacha20poly1305_encrypt_ad(uint8_t *msg,
+                                            uintptr_t mlen,
+                                            uint8_t mac[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
+                                            const uint8_t nonce[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
+                                            const uint8_t key[RC_AEAD_XCHACHA20POLY1305_KEYBYTES],
+                                            const uint8_t *ad,
+                                            uintptr_t adlen);
 
 /**
  * Decrypt a message using the XChaCha20-Poly1305 algorithm.
@@ -286,25 +342,33 @@ short rc_aead_xchacha20poly1305_encrypt(uint8_t *msg,
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_aead_xchacha20poly1305_decrypt(uint8_t *msg,
-                                        uintptr_t mlen,
-                                        const uint8_t (*mac)[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
-                                        const uint8_t (*nonce)[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
-                                        const uint8_t (*key)[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
+int8_t rc_aead_xchacha20poly1305_decrypt(uint8_t *msg,
+                                         uintptr_t mlen,
+                                         const uint8_t mac[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
+                                         const uint8_t nonce[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
+                                         const uint8_t key[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
+
+int8_t rc_aead_xchacha20poly1305_decrypt_ad(uint8_t *msg,
+                                            uintptr_t mlen,
+                                            const uint8_t mac[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
+                                            const uint8_t nonce[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
+                                            const uint8_t key[RC_AEAD_XCHACHA20POLY1305_KEYBYTES],
+                                            const uint8_t *ad,
+                                            uintptr_t adlen);
 
 /**
  * Generate a nonce suitible for use with the
  *XSalsa20-Poly1305
  * algorithm.
  */
-void rc_secretbox_keygen(uint8_t (*nonce)[RC_SECRETBOX_KEYBYTES]);
+void rc_secretbox_keygen(uint8_t nonce[RC_SECRETBOX_KEYBYTES]);
 
 /**
  * Generate a key suitible for use with the
  *XSalsa20-Poly1305
  * algorithm.
  */
-void rc_secretbox_noncegen(uint8_t (*key)[RC_SECRETBOX_NONCEBYTES]);
+void rc_secretbox_noncegen(uint8_t key[RC_SECRETBOX_NONCEBYTES]);
 
 /**
  * Encrypt a message using the XSalsa20-Poly1305 algorithm.
@@ -326,11 +390,19 @@ void rc_secretbox_noncegen(uint8_t (*key)[RC_SECRETBOX_NONCEBYTES]);
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_secretbox_detached(uint8_t *msg,
-                            uintptr_t mlen,
-                            uint8_t (*mac)[RC_SECRETBOX_MACBYTES],
-                            const uint8_t (*nonce)[RC_SECRETBOX_KEYBYTES],
-                            const uint8_t (*key)[RC_SECRETBOX_NONCEBYTES]);
+int8_t rc_secretbox_detached(uint8_t *msg,
+                             uintptr_t mlen,
+                             uint8_t mac[RC_SECRETBOX_MACBYTES],
+                             const uint8_t nonce[RC_SECRETBOX_KEYBYTES],
+                             const uint8_t key[RC_SECRETBOX_NONCEBYTES]);
+
+int8_t rc_secretbox_detached_ad(uint8_t *msg,
+                                uintptr_t mlen,
+                                uint8_t mac[RC_SECRETBOX_MACBYTES],
+                                const uint8_t nonce[RC_SECRETBOX_KEYBYTES],
+                                const uint8_t key[RC_SECRETBOX_NONCEBYTES],
+                                const uint8_t *ad,
+                                uintptr_t adlen);
 
 /**
  * Decrypt a message using the XSalsa20-Poly1305 algorithm.
@@ -352,11 +424,19 @@ short rc_secretbox_detached(uint8_t *msg,
  *
  * `msg` must point to a valid buffer that is at least `mlen` in length.
  */
-short rc_secretbox_open_detached(uint8_t *msg,
-                                 uintptr_t mlen,
-                                 const uint8_t (*mac)[RC_SECRETBOX_MACBYTES],
-                                 const uint8_t (*nonce)[RC_SECRETBOX_KEYBYTES],
-                                 const uint8_t (*key)[RC_SECRETBOX_NONCEBYTES]);
+int8_t rc_secretbox_open_detached(uint8_t *msg,
+                                  uintptr_t mlen,
+                                  const uint8_t mac[RC_SECRETBOX_MACBYTES],
+                                  const uint8_t nonce[RC_SECRETBOX_KEYBYTES],
+                                  const uint8_t key[RC_SECRETBOX_NONCEBYTES]);
+
+int8_t rc_secretbox_open_detached_ad(uint8_t *msg,
+                                     uintptr_t mlen,
+                                     const uint8_t mac[RC_SECRETBOX_MACBYTES],
+                                     const uint8_t nonce[RC_SECRETBOX_KEYBYTES],
+                                     const uint8_t key[RC_SECRETBOX_NONCEBYTES],
+                                     const uint8_t *ad,
+                                     uintptr_t adlen);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -10,7 +10,8 @@ const HEADER_BASE: &str = "/*
 
 fn main() {
     let this_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let target_lib_dir = Path::new(&this_dir).parent().unwrap().join("rcrypto-lib");
+    let this_dir = Path::new(&this_dir);
+    let target_lib_dir = this_dir.parent().unwrap().join("rcrypto-sys");
 
     let json_path = rustdoc_json::Builder::default()
         .toolchain("nightly")
@@ -48,15 +49,18 @@ fn main() {
         writeln!(header, "#define {cname} {new_cval}").unwrap();
     }
 
+    let outfile = this_dir.parent().unwrap().join("rcrypto.h");
     cbindgen::Builder::new()
         .with_crate(target_lib_dir)
         .with_no_includes()
         .with_sys_include("stdint.h")
-        .with_parse_expand(&["rcrypto-lib"])
+        .with_parse_expand(&["rcrypto-sys"])
         .with_language(cbindgen::Language::C)
         .with_cpp_compat(true)
         .with_header(header)
         .generate()
         .expect("failed to generate C bindings")
-        .write_to_file("../rcrypto.h");
+        .write_to_file(&outfile);
+
+    eprintln!("wrote bindings to {}", outfile.display());
 }

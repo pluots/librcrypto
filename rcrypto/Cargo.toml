@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# aead = "0.5.2"
-# rcrypto-lib = { path = "../rcrypto-lib" }
+aead = "0.5.2"
+rcrypto-sys = { path = "../rcrypto-sys" }
+zeroize = { version = "1.6.0", features = ["derive"] }

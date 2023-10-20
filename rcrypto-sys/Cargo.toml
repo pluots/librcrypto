@@ -1,11 +1,19 @@
 [package]
-name = "rcrypto-lib"
+name = "rcrypto-sys"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+# crate-type = ["cdylib"]
+crate-type = ["dylib"]
+
 [dependencies]
 aead = { version = "0.5.2", features = ["getrandom"] }
-aes-gcm = "0.10.3"
+aes-gcm = { version = "0.10.3", default-features = false, features = ["aes"] }
 chacha20poly1305 = { version = "0.10.1", default-features = false }
 crypto_secretbox = { version = "0.1.1", default-features = false, features = ["salsa20"] }
 paste = "1.0.14"
+
+[features]
+default = ["std"]
+std = []

@@ -1,16 +1,11 @@
-#![no_std]
-use core::ffi::c_short;
+#![cfg_attr(not(any(test, feature = "std")), no_std)]
+
 use core::slice;
 
 use aead::generic_array::typenum::marker_traits::Unsigned;
 use aead::AeadInPlace;
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use chacha20poly1305::{ChaCha20Poly1305, XChaCha20Poly1305};
-
-const fn foo() -> usize {
-    100
-}
-pub const X: usize = foo();
 
 macro_rules! aead_interface {
     ($alg:ty, $id:ident, $name:literal) => {
@@ -25,6 +20,8 @@ macro_rules! aead_interface {
                 [<rc_aead_ $id _noncegen>],
                 [<rc_aead_ $id _encrypt>],
                 [<rc_aead_ $id _decrypt>],
+                [<rc_aead_ $id _encrypt_ad>],
+                [<rc_aead_ $id _decrypt_ad>],
                 [<tests_ $id>],
             }
         }
@@ -39,6 +36,8 @@ macro_rules! aead_interface {
         $noncegen_fn:ident,
         $encrypt_fn:ident,
         $decrypt_fn:ident,
+        $encrypt_ad_fn:ident,
+        $decrypt_ad_fn:ident,
         $test_mod:ident,
     ) => {
         /// Length of the nonce (initialization vector) for
@@ -56,16 +55,20 @@ macro_rules! aead_interface {
         /// Generate a nonce suitible for use with the
         #[doc = $name]
         /// algorithm.
+        #[doc = concat!("cbindgen: ptrs-as-arrays=[[nonce;", stringify!($noncebytes), "]]")]
         #[no_mangle]
-        pub extern "C" fn $noncegen_fn(nonce: &mut [u8; $noncebytes]) {
+        pub unsafe extern "C" fn $noncegen_fn(nonce: *mut u8) {
+            let nonce = unsafe { &mut *nonce.cast::<[u8; $noncebytes]>() };
             *nonce = <$alg as aead::AeadCore>::generate_nonce(aead::OsRng).into();
         }
 
         /// Generate a key suitible for use with the
         #[doc = $name]
         /// algorithm.
+        #[doc = concat!("cbindgen: ptrs-as-arrays=[[key;", stringify!($keybytes), "]]")]
         #[no_mangle]
-        pub extern "C" fn $keygen_fn(key: &mut [u8; $keybytes]) {
+        pub unsafe extern "C" fn $keygen_fn(key: *mut u8) {
+            let key = unsafe { &mut *key.cast::<[u8; $keybytes]>() };
             *key = <$alg as aead::KeyInit>::generate_key(aead::OsRng).into();
         }
 
@@ -87,20 +90,46 @@ macro_rules! aead_interface {
         /// # SAFETY
         ///
         /// `msg` must point to a valid buffer that is at least `mlen` in length.
+        #[doc = concat!("cbindgen: ptrs-as-arrays=[[mac;",
+                                                            stringify!($macbytes), "], [nonce;",
+                                                            stringify!($noncebytes), "], [key;",
+                                                            stringify!($keybytes), "]]"
+                                                        )]
         #[no_mangle]
         pub unsafe extern "C" fn $encrypt_fn(
             msg: *mut u8,
             mlen: usize,
-            mac: &mut [u8; $macbytes],
-            nonce: &[u8; $noncebytes],
-            key: &[u8; $keybytes],
-        ) -> c_short {
+            mac: *mut u8,
+            nonce: *const u8,
+            key: *const u8,
+        ) -> i8 {
+            $encrypt_ad_fn(msg, mlen, mac, nonce, key, 0xdeadbeef as *const u8, 0)
+        }
+
+        #[doc = concat!("cbindgen: ptrs-as-arrays=[[mac;",
+                                                            stringify!($macbytes), "], [nonce;",
+                                                            stringify!($noncebytes), "], [key;",
+                                                            stringify!($keybytes), "]]"
+                                                        )]
+        #[no_mangle]
+        pub unsafe extern "C" fn $encrypt_ad_fn(
+            msg: *mut u8,
+            mlen: usize,
+            mac: *mut u8,
+            nonce: *const u8,
+            key: *const u8,
+            ad: *const u8,
+            adlen: usize,
+        ) -> i8 {
             // SAFETY: caller guarantees valid data
             let msg = unsafe { slice::from_raw_parts_mut(msg, mlen) };
+            let ad = unsafe { slice::from_raw_parts(ad, adlen) };
+            let mac = unsafe { &mut *mac.cast::<[u8; $macbytes]>() };
+            let nonce = unsafe { &*nonce.cast::<[u8; $noncebytes]>() };
+            let key = unsafe { &*key.cast::<[u8; $keybytes]>() };
 
             let cipher = <$alg as aead::KeyInit>::new_from_slice(key).unwrap();
-            let Ok(newmac) =
-                cipher.encrypt_in_place_detached(nonce.as_slice().into(), [].as_slice(), msg)
+            let Ok(newmac) = cipher.encrypt_in_place_detached(nonce.as_slice().into(), ad, msg)
             else {
                 return -1;
             };
@@ -127,24 +156,47 @@ macro_rules! aead_interface {
         /// # SAFETY
         ///
         /// `msg` must point to a valid buffer that is at least `mlen` in length.
+        #[doc = concat!("cbindgen: ptrs-as-arrays=[[mac;",
+                                                            stringify!($macbytes), "], [nonce;",
+                                                            stringify!($noncebytes), "], [key;",
+                                                            stringify!($keybytes), "]]"
+                                                        )]
         #[no_mangle]
         pub unsafe extern "C" fn $decrypt_fn(
             msg: *mut u8,
             mlen: usize,
-            mac: &[u8; $macbytes],
-            nonce: &[u8; $noncebytes],
-            key: &[u8; $keybytes],
-        ) -> c_short {
+            mac: *const u8,
+            nonce: *const u8,
+            key: *const u8,
+        ) -> i8 {
+            $decrypt_ad_fn(msg, mlen, mac, nonce, key, 0xdeadbeef as *const u8, 0)
+        }
+
+        #[doc = concat!("cbindgen: ptrs-as-arrays=[[mac;",
+                                                            stringify!($macbytes), "], [nonce;",
+                                                            stringify!($noncebytes), "], [key;",
+                                                            stringify!($keybytes), "]]"
+                                                        )]
+        #[no_mangle]
+        pub unsafe extern "C" fn $decrypt_ad_fn(
+            msg: *mut u8,
+            mlen: usize,
+            mac: *const u8,
+            nonce: *const u8,
+            key: *const u8,
+            ad: *const u8,
+            adlen: usize,
+        ) -> i8 {
             // SAFETY: caller guarantees valid data
             let msg = unsafe { slice::from_raw_parts_mut(msg, mlen) };
+            let ad = unsafe { slice::from_raw_parts(ad, adlen) };
+            let mac = unsafe { &*mac.cast::<[u8; $macbytes]>() };
+            let nonce = unsafe { &*nonce.cast::<[u8; $noncebytes]>() };
+            let key = unsafe { &*key.cast::<[u8; $keybytes]>() };
 
             let cipher = <$alg as aead::KeyInit>::new_from_slice(key).unwrap();
-            let res = cipher.decrypt_in_place_detached(
-                nonce.as_slice().into(),
-                [].as_slice(),
-                msg,
-                mac.into(),
-            );
+            let res =
+                cipher.decrypt_in_place_detached(nonce.as_slice().into(), ad, msg, mac.into());
             if res.is_err() {
                 -1
             } else {
@@ -164,13 +216,29 @@ macro_rules! aead_interface {
                 let mut msg: [u8; 13] = b"Hello, world!".as_slice().try_into().unwrap();
                 let orig_msg = msg.clone();
 
-                $noncegen_fn(&mut nonce);
-                $keygen_fn(&mut key);
+                unsafe {
+                    $noncegen_fn(nonce.as_mut_ptr());
+                    $keygen_fn(key.as_mut_ptr());
+                    $encrypt_fn(
+                        msg.as_mut_ptr(),
+                        msg.len(),
+                        mac.as_mut_ptr(),
+                        nonce.as_ptr(),
+                        key.as_ptr(),
+                    );
 
-                unsafe { $encrypt_fn(msg.as_mut_ptr(), msg.len(), &mut mac, &nonce, &key) };
-                assert_ne!(msg, orig_msg);
-                unsafe { $decrypt_fn(msg.as_mut_ptr(), msg.len(), &mac, &nonce, &key) };
-                assert_eq!(msg, orig_msg);
+                    assert_ne!(msg, orig_msg);
+
+                    $decrypt_fn(
+                        msg.as_mut_ptr(),
+                        msg.len(),
+                        mac.as_ptr(),
+                        nonce.as_ptr(),
+                        key.as_ptr(),
+                    );
+
+                    assert_eq!(msg, orig_msg);
+                }
             }
         }
     };
@@ -190,5 +258,7 @@ aead_interface!(
     rc_secretbox_keygen,
     rc_secretbox_detached,
     rc_secretbox_open_detached,
+    rc_secretbox_detached_ad,
+    rc_secretbox_open_detached_ad,
     test_salsa,
 );
