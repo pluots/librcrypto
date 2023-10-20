@@ -1,10 +1,15 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
 
+use core::cmp::min;
 use core::slice;
 
 use aead::generic_array::typenum::marker_traits::Unsigned;
 use aead::AeadInPlace;
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
+use argon2::password_hash::errors::InvalidValue;
+use argon2::password_hash::{errors::Error as PwHashErr, PasswordHash, PasswordVerifier, Salt};
+use argon2::PasswordHasher;
+use base64ct::{Base64, Base64Unpadded, Base64Url, Base64UrlUnpadded, Encoding};
 use chacha20poly1305::{ChaCha20Poly1305, XChaCha20Poly1305};
 
 macro_rules! aead_interface {
@@ -197,10 +202,9 @@ macro_rules! aead_interface {
             let cipher = <$alg as aead::KeyInit>::new_from_slice(key).unwrap();
             let res =
                 cipher.decrypt_in_place_detached(nonce.as_slice().into(), ad, msg, mac.into());
-            if res.is_err() {
-                -1
-            } else {
-                0
+            match res {
+                Ok(()) => 0,
+                Err(_) => -1,
             }
         }
 
@@ -262,3 +266,222 @@ aead_interface!(
     rc_secretbox_open_detached_ad,
     test_salsa,
 );
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub enum RcB64Variant {
+    RcB64Original,
+    RcB64OriginalUnpadded,
+    RcB64Url,
+    RcB64UrlUnpadded,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug)]
+pub enum RcBase64Result {
+    RcB64Ok = 0,
+    RcB64InvalidEncoding = -2,
+    RcB64InvalidLength = -1,
+}
+
+impl From<base64ct::Error> for RcBase64Result {
+    fn from(value: base64ct::Error) -> Self {
+        match value {
+            base64ct::Error::InvalidEncoding => Self::RcB64InvalidEncoding,
+            base64ct::Error::InvalidLength => Self::RcB64InvalidLength,
+        }
+    }
+}
+
+/// Constant-time base64 encoding
+#[no_mangle]
+pub unsafe extern "C" fn rc_base64_encode_ct(
+    variant: RcB64Variant,
+    bin: *const u8,
+    bin_len: usize,
+    b64: *mut u8,
+    b64_maxlen: usize,
+    b64_len: &mut usize,
+) -> RcBase64Result {
+    let src = unsafe { slice::from_raw_parts(bin, bin_len) };
+    let dst = unsafe { slice::from_raw_parts_mut(b64, b64_maxlen) };
+    let res = match variant {
+        RcB64Variant::RcB64Original => Base64::encode(src, dst),
+        RcB64Variant::RcB64OriginalUnpadded => Base64Unpadded::encode(src, dst),
+        RcB64Variant::RcB64Url => Base64Url::encode(src, dst),
+        RcB64Variant::RcB64UrlUnpadded => Base64UrlUnpadded::encode(src, dst),
+    };
+
+    match res {
+        Ok(out) => {
+            *b64_len = out.len();
+            RcBase64Result::RcB64Ok
+        }
+        Err(_) => RcBase64Result::RcB64InvalidLength,
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn rc_base64_decode_ct(
+    variant: RcB64Variant,
+    b64: *const u8,
+    b64len: usize,
+    bin: *mut u8,
+    bin_maxlen: usize,
+    bin_len: &mut usize,
+) -> RcBase64Result {
+    let src = unsafe { slice::from_raw_parts(b64, b64len) };
+    let dst = unsafe { slice::from_raw_parts_mut(bin, bin_maxlen) };
+    let res = match variant {
+        RcB64Variant::RcB64Original => Base64::decode(src, dst),
+        RcB64Variant::RcB64OriginalUnpadded => Base64Unpadded::decode(src, dst),
+        RcB64Variant::RcB64Url => Base64Url::decode(src, dst),
+        RcB64Variant::RcB64UrlUnpadded => Base64UrlUnpadded::decode(src, dst),
+    };
+
+    match res {
+        Ok(out) => {
+            *bin_len = out.len();
+            RcBase64Result::RcB64Ok
+        }
+        Err(e) => e.into(),
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn rc_base64_encoded_len(variant: RcB64Variant, len: usize) -> usize {
+    let tmp = unsafe { slice::from_raw_parts(0xdeadbeef as *const u8, len) };
+    match variant {
+        RcB64Variant::RcB64Original => Base64::encoded_len(tmp),
+        RcB64Variant::RcB64OriginalUnpadded => Base64Unpadded::encoded_len(tmp),
+        RcB64Variant::RcB64Url => Base64Url::encoded_len(tmp),
+        RcB64Variant::RcB64UrlUnpadded => Base64UrlUnpadded::encoded_len(tmp),
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn rc_zeroize(ptr: *mut u8, len: usize) {
+    use zeroize::Zeroize;
+    let buf = unsafe { slice::from_raw_parts_mut(ptr, len) };
+    buf.iter_mut().zeroize();
+}
+
+/// Maximum length for a password output string. Actual value may be shorter
+pub const RC_PWHASH_STRBYTES: usize = 128;
+/// Recommended length for salt
+pub const RC_PWHASH_SALT_RECOMMENDED_BYTES: usize = Salt::RECOMMENDED_LENGTH;
+pub const RC_PWHASH_SALT_MIN_BYTES: usize = Salt::MIN_LENGTH;
+pub const RC_PWHASH_SALT_MAX_BYTES: usize = Salt::MAX_LENGTH;
+
+#[repr(C)]
+pub enum RcPwhashresult {
+    RcPwhashOk = 0,
+    RcPwhashPasswordInvalid = 1,
+    RcPwhashUnspecifiedError = -1,
+    RcPwhashAlgorithm = -2,
+    RcPwhashB64Encoding = -3,
+    RcPwhashCrypto = -4,
+    RcPwhashOutputSize = -5,
+    RcPwhashParamNameDuplicated = -6,
+    RcPwhashParamNameInvalid = -7,
+    RcPwhashParamValueInvalid = -8,
+    RcPwhashParamsMaxExceeded = -9,
+    RcPwhashPhcStringField = -11,
+    RcPwhashPhcStringTrailingData = -12,
+    RcPwhashSaltInvalidChar = -13,
+    RcPwhashSaltInvalidFormat = -14,
+    RcPwhashSaltInvalidMalformed = -15,
+    RcPwhashSaltInvalidTooLong = -16,
+    RcPwhashSaltInvalidTooShort = -17,
+    RcPwhashVersion = -18,
+    RcPwhashStringError = -19,
+}
+
+impl From<PwHashErr> for RcPwhashresult {
+    fn from(value: PwHashErr) -> Self {
+        match value {
+            PwHashErr::Algorithm => Self::RcPwhashAlgorithm,
+            PwHashErr::B64Encoding(_) => Self::RcPwhashB64Encoding,
+            PwHashErr::Crypto => Self::RcPwhashCrypto,
+            PwHashErr::OutputSize { .. } => Self::RcPwhashOutputSize,
+            PwHashErr::ParamNameDuplicated => Self::RcPwhashParamNameDuplicated,
+            PwHashErr::ParamNameInvalid => Self::RcPwhashParamNameInvalid,
+            PwHashErr::ParamValueInvalid(_) => Self::RcPwhashParamValueInvalid,
+            PwHashErr::ParamsMaxExceeded => Self::RcPwhashParamsMaxExceeded,
+            PwHashErr::Password => Self::RcPwhashPasswordInvalid,
+            PwHashErr::PhcStringField => Self::RcPwhashPhcStringField,
+            PwHashErr::PhcStringTrailingData => Self::RcPwhashPhcStringTrailingData,
+            PwHashErr::SaltInvalid(InvalidValue::InvalidChar(_)) => Self::RcPwhashSaltInvalidChar,
+            PwHashErr::SaltInvalid(InvalidValue::InvalidFormat) => Self::RcPwhashSaltInvalidFormat,
+            PwHashErr::SaltInvalid(InvalidValue::Malformed) => Self::RcPwhashSaltInvalidMalformed,
+            PwHashErr::SaltInvalid(InvalidValue::TooLong) => Self::RcPwhashSaltInvalidTooLong,
+            PwHashErr::SaltInvalid(InvalidValue::TooShort) => Self::RcPwhashSaltInvalidTooShort,
+            PwHashErr::Version => Self::RcPwhashVersion,
+            _ => Self::RcPwhashUnspecifiedError,
+        }
+    }
+}
+
+/// Hash a password with argon2id v19
+#[no_mangle]
+pub unsafe extern "C" fn rc_pwhash_argon2(
+    pw: *const u8,
+    pwlen: usize,
+    salt: *const u8, // b64 encoded
+    saltlen: usize,
+    out: *mut u8,
+    out_maxlen: usize,
+    outlen: &mut usize,
+) -> RcPwhashresult {
+    let pw = unsafe { slice::from_raw_parts(pw, pwlen) };
+    let salt = unsafe { slice::from_raw_parts(salt, saltlen) };
+    let out = unsafe { slice::from_raw_parts_mut(out, out_maxlen) };
+    let Ok(salt) = core::str::from_utf8(salt) else {
+        return RcPwhashresult::RcPwhashStringError;
+    };
+    let salt = match Salt::from_b64(salt) {
+        Ok(v) => v,
+        Err(e) => return dbg!(e).into(),
+    };
+
+    let a2 = argon2::Argon2::default();
+
+    let hash = match a2.hash_password(pw, salt) {
+        Ok(v) => v,
+        Err(e) => return dbg!(e).into(),
+    };
+
+    let hash_str = hash.to_string();
+    let to_write = min(hash_str.len(), out.len());
+    out[..to_write].copy_from_slice(&hash_str.as_bytes()[..to_write]);
+
+    *outlen = hash_str.len();
+
+    RcPwhashresult::RcPwhashOk
+}
+
+/// Returns negative if error, +1 if incorrect but everything working, 0 if
+/// correct.
+#[no_mangle]
+pub unsafe extern "C" fn rc_pwhash_argon2_verify(
+    pw: *const u8,
+    pwlen: usize,
+    hash: *const u8,
+    hlen: usize,
+) -> RcPwhashresult {
+    let pw = unsafe { slice::from_raw_parts(pw, pwlen) };
+    let hash = unsafe { slice::from_raw_parts(hash, hlen) };
+    let Ok(hash) = core::str::from_utf8(hash) else {
+        return RcPwhashresult::RcPwhashStringError;
+    };
+    let parsed_hash = match PasswordHash::new(hash) {
+        Ok(v) => v,
+        Err(e) => return dbg!(e).into(),
+    };
+    let res = argon2::Argon2::default().verify_password(pw, &parsed_hash);
+    if let Err(e) = res {
+        dbg!(e).into()
+    } else {
+        RcPwhashresult::RcPwhashOk
+    }
+}

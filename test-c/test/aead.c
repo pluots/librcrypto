@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include "rcrypto.h"
 #include "unity.h"
+#include "unity_framework.h"
 
-typedef unsigned char uchar;
 
 #define MAKE_AEAD_TEST(name, upper) \
     void test_ ## name () { \
@@ -43,6 +43,7 @@ void aead_test_runner(
     int eres = encrypt(msg, mlen, mac, nonce, key);
     
     TEST_ASSERT_EQUAL_INT_MESSAGE(eres, 0, name);
+    // hack to verify scrambled message since `...NOT_EQUAL_MEMORY` is not available
     TEST_ASSERT_NOT_EQUAL_UINT64_MESSAGE(*(uint64_t*)msg, *(uint64_t*)orig, name);
     
     int dres = decrypt(msg, mlen, mac, nonce, key);
