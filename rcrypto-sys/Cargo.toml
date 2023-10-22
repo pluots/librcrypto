@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 # crate-type = ["cdylib"]
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 aead = { version = "0.5.2", features = ["getrandom"] }
@@ -20,3 +20,6 @@ zeroize = { version = "1.6.0", default-features = false }
 [features]
 default = ["std"]
 std = []
+
+[build-dependencies]
+indoc = "2.0.4"

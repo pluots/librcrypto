@@ -9,7 +9,16 @@ ifeq ($(OS),Windows_NT)
 	MKDIR = mkdir -p
   endif
 	TARGET_EXTENSION=exe
+	SHARED_EXTENSION=dll
 else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+       SHARED_EXTENSION=si
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        SHARED_EXTENSION=dylib
+    endif
+
 	CLEANUP = rm -f
 	MKDIR = mkdir -p
 	TARGET_EXTENSION=out
@@ -22,8 +31,9 @@ PATHUNITY = unity/src/
 PATHTESTS = test/
 PATHBUILD = build/
 PATHBIN   = build/bin/
-PATHRCHDR = "../"
-PATHDYLIB = "../target/debug/librcrypto_sys.so"
+PATHRCHDR = ../
+PATHDEBUG = ../target/debug/
+PATHDYLIB = $(PATHDEBUG)librcrypto_sys.$(SHARED_EXTENSION)
 
 SRCTESTS = $(wildcard $(PATHTESTS)*.c)
 
@@ -33,8 +43,8 @@ CFLAGS=-I. -I$(PATHUNITY) -I$(PATHRCHDR) -DTEST
 # add paths built by cargo
 LDFLAGS=-L$(PATHDEBUG) -lrcrypto_sys
 
-RESULTS = $(patsubst $(PATHTESTS)%.c,$(PATHBUILD)test_%.txt,$(SRCTESTS) )
-BUILD_PATHS = $(PATHBUILD) $(PATHBIN)
+RESULTS=$(patsubst $(PATHTESTS)%.c,$(PATHBUILD)test_%.txt,$(SRCTESTS) )
+BUILD_PATHS=$(PATHBUILD) $(PATHBIN)
 
 PASSED = `grep -s PASS $(PATHBUILD)*.txt`
 FAIL = `grep -s FAIL $(PATHBUILD)*.txt`
@@ -82,5 +92,5 @@ clean:
 	$(CLEANUP) $(PATHBUILD)*.$(TARGET_EXTENSION)
 	$(CLEANUP) $(PATHBUILD)*.txt
 
-.PRECIOUS: $(PATHB)Test%.$(TARGET_EXTENSION)
+.PRECIOUS: $(PATHB)test%.$(TARGET_EXTENSION)
 .PRECIOUS: $(PATHR)%.txt

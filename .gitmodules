@@ -1,3 +1,4 @@
-[submodule "test-c/unity"]
-	path = test-c/unity
+[submodule "rcrypto-sys/tests/c/unity"]
+	path = rcrypto-sys/tests/c/unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
+	shallow = true
