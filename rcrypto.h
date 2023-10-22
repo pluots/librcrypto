@@ -76,6 +76,8 @@ typedef enum RcPwhashresult {
 extern "C" {
 #endif // __cplusplus
 
+extern const uint32_t RC_VERSION;
+
 /**
  * Generate a nonce suitible for use with the
  *AES128-GCM
