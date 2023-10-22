@@ -41,7 +41,7 @@ pub mod aeads {
         ) -> aead::Result<aead::Tag<Self>> {
             let mut tag: aead::Key<Self> = Default::default();
             let res = unsafe {
-                rcrypto_sys::rc_aead_aes128gcm_encrypt_ad(
+                rcrypto_sys::aeads::rc_aead_aes128gcm_encrypt_ad(
                     buffer.as_mut_ptr(),
                     buffer.len(),
                     tag.as_mut_ptr(),
@@ -66,7 +66,7 @@ pub mod aeads {
             tag: &aead::Tag<Self>,
         ) -> aead::Result<()> {
             let res = unsafe {
-                rcrypto_sys::rc_aead_aes128gcm_decrypt_ad(
+                rcrypto_sys::aeads::rc_aead_aes128gcm_decrypt_ad(
                     buffer.as_mut_ptr(),
                     buffer.len(),
                     tag.as_ptr(),
