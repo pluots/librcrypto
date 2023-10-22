@@ -111,6 +111,14 @@ macro_rules! aead_interface {
             $encrypt_ad_fn(msg, mlen, mac, nonce, key, 0xdeadbeef as *const u8, 0)
         }
 
+
+        #[doc = concat!(" Encrypt a message using the ", $name, " algorithm with additional data")]
+        /// (any data that gets added to the MAC input).
+        ///
+        /// # Safety
+        ///
+        #[doc = concat!("Safety requirements are the same as [`", stringify!($encrypt_fn), "`],")]
+        /// with the additional requirement that `*ad` is valid for `adlen`.
         #[doc = concat!("cbindgen: ptrs-as-arrays=[[mac;",
                                                             stringify!($macbytes), "], [nonce;",
                                                             stringify!($noncebytes), "], [key;",
@@ -177,6 +185,13 @@ macro_rules! aead_interface {
             $decrypt_ad_fn(msg, mlen, mac, nonce, key, 0xdeadbeef as *const u8, 0)
         }
 
+        #[doc = concat!(" Decrypt a message using the ", $name, " algorithm with additional data")]
+        /// (any data that gets added to the MAC input).
+        ///
+        /// # Safety
+        ///
+        #[doc = concat!("Safety requirements are the same as [`", stringify!($decrypt_fn), "`],")]
+        /// with the additional requirement that `*ad` is valid for `adlen`.
         #[doc = concat!("cbindgen: ptrs-as-arrays=[[mac;",
                                                             stringify!($macbytes), "], [nonce;",
                                                             stringify!($noncebytes), "], [key;",
