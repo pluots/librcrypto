@@ -77,6 +77,17 @@ jobs:
         with:
           files: lcov.info
 
+  check_bindings:
+    name: verify bindings are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: mv rcrypto.h rcrypto-orig.h
+      - run: cargo run --package generate-bindings
+      - run: diff rcrypto-orig.h rcrypto.h
+  
   fmt:
     name: formatting
     runs-on: ubuntu-latest

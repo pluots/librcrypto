@@ -116,6 +116,15 @@ int8_t rc_aead_aes128gcm_encrypt(uint8_t *msg,
                                  const uint8_t nonce[RC_AEAD_AES128GCM_NONCEBYTES],
                                  const uint8_t key[RC_AEAD_AES128GCM_KEYBYTES]);
 
+/**
+ * Encrypt a message using the AES128-GCM algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_aes128gcm_encrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_aes128gcm_encrypt_ad(uint8_t *msg,
                                     uintptr_t mlen,
                                     uint8_t mac[RC_AEAD_AES128GCM_MACBYTES],
@@ -150,6 +159,15 @@ int8_t rc_aead_aes128gcm_decrypt(uint8_t *msg,
                                  const uint8_t nonce[RC_AEAD_AES128GCM_NONCEBYTES],
                                  const uint8_t key[RC_AEAD_AES128GCM_KEYBYTES]);
 
+/**
+ * Decrypt a message using the AES128-GCM algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_aes128gcm_decrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_aes128gcm_decrypt_ad(uint8_t *msg,
                                     uintptr_t mlen,
                                     const uint8_t mac[RC_AEAD_AES128GCM_MACBYTES],
@@ -198,6 +216,15 @@ int8_t rc_aead_aes256gcm_encrypt(uint8_t *msg,
                                  const uint8_t nonce[RC_AEAD_AES256GCM_NONCEBYTES],
                                  const uint8_t key[RC_AEAD_AES256GCM_KEYBYTES]);
 
+/**
+ * Encrypt a message using the AES256-GCM algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_aes256gcm_encrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_aes256gcm_encrypt_ad(uint8_t *msg,
                                     uintptr_t mlen,
                                     uint8_t mac[RC_AEAD_AES256GCM_MACBYTES],
@@ -232,6 +259,15 @@ int8_t rc_aead_aes256gcm_decrypt(uint8_t *msg,
                                  const uint8_t nonce[RC_AEAD_AES256GCM_NONCEBYTES],
                                  const uint8_t key[RC_AEAD_AES256GCM_KEYBYTES]);
 
+/**
+ * Decrypt a message using the AES256-GCM algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_aes256gcm_decrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_aes256gcm_decrypt_ad(uint8_t *msg,
                                     uintptr_t mlen,
                                     const uint8_t mac[RC_AEAD_AES256GCM_MACBYTES],
@@ -280,6 +316,15 @@ int8_t rc_aead_chacha20poly1305_encrypt(uint8_t *msg,
                                         const uint8_t nonce[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
                                         const uint8_t key[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
 
+/**
+ * Encrypt a message using the ChaCha20-Poly1305 algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_chacha20poly1305_encrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_chacha20poly1305_encrypt_ad(uint8_t *msg,
                                            uintptr_t mlen,
                                            uint8_t mac[RC_AEAD_CHACHA20POLY1305_MACBYTES],
@@ -314,6 +359,15 @@ int8_t rc_aead_chacha20poly1305_decrypt(uint8_t *msg,
                                         const uint8_t nonce[RC_AEAD_CHACHA20POLY1305_NONCEBYTES],
                                         const uint8_t key[RC_AEAD_CHACHA20POLY1305_KEYBYTES]);
 
+/**
+ * Decrypt a message using the ChaCha20-Poly1305 algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_chacha20poly1305_decrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_chacha20poly1305_decrypt_ad(uint8_t *msg,
                                            uintptr_t mlen,
                                            const uint8_t mac[RC_AEAD_CHACHA20POLY1305_MACBYTES],
@@ -362,6 +416,15 @@ int8_t rc_aead_xchacha20poly1305_encrypt(uint8_t *msg,
                                          const uint8_t nonce[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
                                          const uint8_t key[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
 
+/**
+ * Encrypt a message using the XChaCha20-Poly1305 algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_xchacha20poly1305_encrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_xchacha20poly1305_encrypt_ad(uint8_t *msg,
                                             uintptr_t mlen,
                                             uint8_t mac[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
@@ -396,6 +459,15 @@ int8_t rc_aead_xchacha20poly1305_decrypt(uint8_t *msg,
                                          const uint8_t nonce[RC_AEAD_XCHACHA20POLY1305_NONCEBYTES],
                                          const uint8_t key[RC_AEAD_XCHACHA20POLY1305_KEYBYTES]);
 
+/**
+ * Decrypt a message using the XChaCha20-Poly1305 algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_aead_xchacha20poly1305_decrypt`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_aead_xchacha20poly1305_decrypt_ad(uint8_t *msg,
                                             uintptr_t mlen,
                                             const uint8_t mac[RC_AEAD_XCHACHA20POLY1305_MACBYTES],
@@ -444,6 +516,15 @@ int8_t rc_secretbox_detached(uint8_t *msg,
                              const uint8_t nonce[RC_SECRETBOX_KEYBYTES],
                              const uint8_t key[RC_SECRETBOX_NONCEBYTES]);
 
+/**
+ * Encrypt a message using the XSalsa20-Poly1305 algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_secretbox_detached`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_secretbox_detached_ad(uint8_t *msg,
                                 uintptr_t mlen,
                                 uint8_t mac[RC_SECRETBOX_MACBYTES],
@@ -478,6 +559,15 @@ int8_t rc_secretbox_open_detached(uint8_t *msg,
                                   const uint8_t nonce[RC_SECRETBOX_KEYBYTES],
                                   const uint8_t key[RC_SECRETBOX_NONCEBYTES]);
 
+/**
+ * Decrypt a message using the XSalsa20-Poly1305 algorithm with additional data
+ * (any data that gets added to the MAC input).
+ *
+ * # Safety
+ *
+ *Safety requirements are the same as [`rc_secretbox_open_detached`],
+ * with the additional requirement that `*ad` is valid for `adlen`.
+ */
 int8_t rc_secretbox_open_detached_ad(uint8_t *msg,
                                      uintptr_t mlen,
                                      const uint8_t mac[RC_SECRETBOX_MACBYTES],

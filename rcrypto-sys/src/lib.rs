@@ -1,4 +1,5 @@
 #![cfg_attr(not(any(test, feature = "std")), no_std)]
+#![allow(rustdoc::broken_intra_doc_links)] // rustdoc thinks bindgen annotations are links...
 
 use core::cmp::min;
 use core::slice;

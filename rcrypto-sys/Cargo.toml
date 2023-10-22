@@ -5,7 +5,8 @@ edition = "2021"
 
 [lib]
 # crate-type = ["cdylib"]
-crate-type = ["cdylib"]
+# FIXME: how do we make this cdylib only?
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 aead = { version = "0.5.2", features = ["getrandom"] }
