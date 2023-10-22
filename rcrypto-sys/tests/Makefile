@@ -26,6 +26,7 @@ else
 	target_extension = out
 endif
 
+.PHONY: check-submodules
 .PHONY: clean
 .PHONY: build
 
@@ -56,13 +57,22 @@ ldflags = -L$(dir_sharedlib) -l$(lib_name) $(LDFLAGS)
 test_exe_files = $(patsubst $(dir_tests)%.c,$(dir_testout)test_%.$(target_extension),$(test_src_files))
 build_paths = $(dir_build) $(dir_testout)
 
-build: $(build_paths) $(test_exe_files)
+.check-submodules:
+	@if git submodule status | egrep -q '^[-+]' ; then \
+		echo "ERROR: submodules need to be initialized"; \
+	else \
+		echo "submodules up to date"; \
+	fi
+
+build: .check-submodules $(build_paths) $(test_exe_files)
 	@echo generating C output to $(outdir)
 
 # make all test executables
 $(dir_testout)test_%.$(target_extension): $(dir_build)unity.o \
 	$(dir_build)test_framework.o  $(dir_build)test_%.o
-	$(link) $(ldflags) -o $@ $^
+	pwd
+	ls -l $(dir_sharedlib)
+	$(link) -o $@ $^ $(ldflags)
 
 # make all test object files
 $(dir_build)test_%.o:: $(dir_tests)%.c
