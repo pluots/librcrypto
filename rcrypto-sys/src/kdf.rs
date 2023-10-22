@@ -64,6 +64,12 @@ impl From<PwHashErr> for RcPwhashresult {
 }
 
 /// Hash a password with argon2id v19
+///
+/// # Safety
+///
+/// - `pw` is `pwlen` in length
+/// - `salt` is `saltlen` in length
+/// - `out` is `out_maxlen` in length
 #[no_mangle]
 pub unsafe extern "C" fn rc_pwhash_argon2(
     pw: *const u8,
@@ -103,6 +109,11 @@ pub unsafe extern "C" fn rc_pwhash_argon2(
 
 /// Returns negative if error, +1 if incorrect but everything working, 0 if
 /// correct.
+///
+/// # Safety
+///
+/// - `pw` is `pwlen`
+/// - `hash` is `hlen`
 #[no_mangle]
 pub unsafe extern "C" fn rc_pwhash_argon2_verify(
     pw: *const u8,
