@@ -1,6 +1,4 @@
-#include <string.h>
-#include "rcrypto.h"
-#include "unity_framework.h"
+#include "test_framework.h"
 
 #define OUTLEN 100
 

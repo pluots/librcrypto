@@ -61,7 +61,7 @@ build: $(build_paths) $(test_exe_files)
 
 # make all test executables
 $(dir_testout)test_%.$(target_extension): $(dir_build)unity.o \
-	$(dir_build)unity_framework.o  $(dir_build)test_%.o
+	$(dir_build)test_framework.o  $(dir_build)test_%.o
 	$(link) $(ldflags) -o $@ $^
 
 # make all test object files
@@ -71,7 +71,7 @@ $(dir_build)test_%.o:: $(dir_tests)%.c
 $(dir_build)%.o:: $(include_unity)%.c $(include_unity)%.h
 	$(compile) $(cflags) $< -o $@
 
-$(dir_build)unity_framework.o: $(include_framework)unity_framework.c
+$(dir_build)test_framework.o: $(include_framework)test_framework.c
 	$(compile) $(cflags) $< -o $@
 
 $(dir_build):

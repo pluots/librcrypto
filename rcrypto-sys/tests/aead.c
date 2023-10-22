@@ -1,9 +1,4 @@
-#include <string.h>
-#include <stdint.h>
-#include "rcrypto.h"
-#include "unity.h"
-#include "unity_framework.h"
-
+#include "test_framework.h"
 
 #define MAKE_AEAD_TEST(name, upper) \
     void test_ ## name () { \

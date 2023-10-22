@@ -1,7 +1,4 @@
-#include <string.h>
-#include "rcrypto.h"
-#include "unity_framework.h"
-
+#include "test_framework.h"
 
 void test_argon2() {
     char *pw = "password";

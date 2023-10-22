@@ -83,6 +83,10 @@ fn update_tests() {
                     combined.lines()
                         .filter(|line| line.contains(\"PASS\"))
                         .for_each(|line| println!(\"    {{line}}\"));
+                }} else {{
+                    // For other failures, just propegate the output
+                    println!(\"{{stdout}}\");
+                    eprintln!(\"{{stderr}}\");
                 }}
 
                 println!();
