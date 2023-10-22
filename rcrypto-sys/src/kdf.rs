@@ -5,7 +5,7 @@ use core::slice;
 
 use argon2::password_hash::errors::InvalidValue;
 use argon2::password_hash::{errors::Error as PwHashErr, PasswordHash, PasswordVerifier, Salt};
-use argon2::PasswordHasher;
+use argon2::{Argon2, PasswordHasher};
 
 /// Maximum length for a password output string. Actual value may be shorter
 pub const RC_PWHASH_STRBYTES: usize = 128;
@@ -91,7 +91,7 @@ pub unsafe extern "C" fn rc_pwhash_argon2(
         Err(e) => return dbg!(e).into(),
     };
 
-    let a2 = argon2::Argon2::default();
+    let a2 = Argon2::default();
 
     let hash = match a2.hash_password(pw, salt) {
         Ok(v) => v,
@@ -130,10 +130,54 @@ pub unsafe extern "C" fn rc_pwhash_argon2_verify(
         Ok(v) => v,
         Err(e) => return dbg!(e).into(),
     };
-    let res = argon2::Argon2::default().verify_password(pw, &parsed_hash);
+    let res = Argon2::default().verify_password(pw, &parsed_hash);
     if let Err(e) = res {
         dbg!(e).into()
     } else {
         RcPwhashresult::RcPwhashOk
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_roundtrip() {
+        let pw = "password";
+        let salt = Salt::from_b64("c2FsdHlzYWx0eXNhbHR5").unwrap();
+        let mut out = [0u8; RC_PWHASH_STRBYTES];
+
+        let a2 = Argon2::default();
+        let expected = a2.hash_password(pw.as_bytes(), salt).unwrap().to_string();
+        dbg!(&expected);
+        let mut outlen = 0usize;
+
+        let res = unsafe {
+            rc_pwhash_argon2(
+                pw.as_ptr(),
+                pw.len(),
+                salt.as_ref().as_ptr(),
+                salt.as_ref().len(),
+                out.as_mut_ptr(),
+                RC_PWHASH_STRBYTES,
+                &mut outlen,
+            )
+        };
+
+        let hash = &out[..outlen];
+        let outstr = core::str::from_utf8(hash).unwrap();
+        assert_eq!(outstr, expected);
+        assert_eq!(res as i32, 0);
+
+        let bad = "nopassword";
+
+        let res =
+            unsafe { rc_pwhash_argon2_verify(bad.as_ptr(), bad.len(), hash.as_ptr(), hash.len()) };
+        assert_eq!(res as i32, 1);
+
+        let res =
+            unsafe { rc_pwhash_argon2_verify(pw.as_ptr(), pw.len(), hash.as_ptr(), hash.len()) };
+        assert_eq!(res as i32, 0);
     }
 }
