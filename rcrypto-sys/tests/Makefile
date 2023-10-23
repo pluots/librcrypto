@@ -70,8 +70,6 @@ build: .check-submodules $(build_paths) $(test_exe_files)
 # make all test executables
 $(dir_testout)test_%.$(target_extension): $(dir_build)unity.o \
 	$(dir_build)test_framework.o  $(dir_build)test_%.o
-	pwd
-	ls -l $(dir_sharedlib)
 	$(link) -o $@ $^ $(ldflags)
 
 # make all test object files
