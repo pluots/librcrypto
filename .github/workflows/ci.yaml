@@ -73,6 +73,8 @@ jobs:
       - run: cargo test --doc
       - name: Upload coverage data to codecov
         uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           files: lcov.info
 
