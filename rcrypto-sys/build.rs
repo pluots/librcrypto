@@ -2,8 +2,6 @@ use std::fmt::Write;
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
-use indoc::indoc;
-
 fn main() {
     update_tests();
 }
@@ -25,7 +23,7 @@ fn update_tests() {
     let out_dir = PathBuf::from(&env::var("OUT_DIR").unwrap());
     let out_file = out_dir.join("auto_suite.rs");
     let test_dir = crate_dir.join("tests");
-    let test_paths = fs::read_dir(&test_dir).unwrap();
+    let test_paths = fs::read_dir(test_dir).unwrap();
 
     let mut to_write = TEST_PREFIX.to_owned();
 
@@ -37,14 +35,15 @@ fn update_tests() {
         }
 
         let test_name = fname.strip_suffix(".c").unwrap().replace('-', "_");
-        let exe_path = format!(
-            "{out_dir}/c-out/test_{test_name}.{EXE_EXTENSION}",
-            out_dir = out_dir.to_string_lossy()
-        );
+        let mut exe_path = out_dir.clone();
+        exe_path.extend(["c-out", &format!("test_{test_name}.{EXE_EXTENSION}")]);
+        let exe_path_str = exe_path.to_string_lossy();
+        // escape backslashes
+        let exe_path_str = exe_path_str.replace('\\', "\\\\");
 
-        write!(
+        indoc::writedoc!(
             to_write,
-            indoc! {"
+            "
 
                 #[test]
                 fn test_{test_name}() {{
@@ -52,9 +51,9 @@ fn update_tests() {
                     let mut cmd = Command::new(\"{exe_path}\");
                     run_cmd_else_quit(&mut cmd, \"{fname}\");
                 }}
-            "},
+            ",
             test_name = test_name,
-            exe_path = exe_path,
+            exe_path = exe_path_str,
             fname = fname,
         )
         .unwrap();
